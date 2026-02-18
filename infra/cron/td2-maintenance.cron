@@ -1,0 +1,11 @@
+# TD2 Builder maintenance examples
+# Install with: crontab infra/cron/td2-maintenance.cron
+
+# Daily backup at 02:30
+30 2 * * * cd /var/www/td2-builder && /usr/bin/npm run db:backup >> /var/log/td2-backup.log 2>&1
+
+# Monthly restore-check on day 1 at 03:15
+15 3 1 * * cd /var/www/td2-builder && /usr/bin/npm run db:restore-check >> /var/log/td2-restore-check.log 2>&1
+
+# Health check every 2 minutes (set ALERT_WEBHOOK_URL in environment if desired)
+*/2 * * * * cd /var/www/td2-builder && /usr/bin/bash scripts/health-alert.sh >> /var/log/td2-health.log 2>&1

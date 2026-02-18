@@ -1,0 +1,22 @@
+[Unit]
+Description=TD2 Builder API (NestJS)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/td2-builder
+Environment=NODE_ENV=production
+EnvironmentFile=/var/www/td2-builder/apps/api/.env
+ExecStartPre=/usr/bin/npm -w apps/api run prisma:migrate:deploy
+ExecStartPre=/usr/bin/npm -w apps/api run prisma:generate
+ExecStartPre=/usr/bin/npm -w apps/api run build
+ExecStart=/usr/bin/npm -w apps/api run start:prod
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
+

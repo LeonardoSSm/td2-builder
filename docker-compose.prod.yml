@@ -1,0 +1,23 @@
+services:
+  caddy:
+    image: caddy:2
+    container_name: td2_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Copy infra/Caddyfile.example to infra/Caddyfile and adjust domain before start.
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Build output from apps/web (npm -w apps/web run build)
+      - ./apps/web/dist:/srv/td2/web:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    extra_hosts:
+      # Allows Caddy container to reach API running on host at :3001
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  caddy_data:
+  caddy_config:
+

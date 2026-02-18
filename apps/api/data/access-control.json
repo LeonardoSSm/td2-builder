@@ -1,0 +1,32 @@
+{
+  "profiles": [
+    {
+      "id": "root",
+      "name": "Root",
+      "permissions": [
+        "admin.items.manage",
+        "admin.import.run",
+        "admin.recommended.manage",
+        "admin.users.manage"
+      ]
+    },
+    {
+      "id": "admin",
+      "name": "Admin",
+      "permissions": [
+        "admin.items.manage",
+        "admin.import.run",
+        "admin.recommended.manage"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "root",
+      "name": "Root",
+      "email": "root@local.test",
+      "profileId": "root",
+      "active": true
+    }
+  ]
+}

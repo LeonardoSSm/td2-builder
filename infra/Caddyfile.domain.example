@@ -1,0 +1,25 @@
+# PRODUCTION HTTPS (automatic certificate via Let's Encrypt)
+# 1) Replace "SEU_DOMINIO_AQUI" with your real domain.
+# 2) Make sure DNS A/AAAA points to your server public IP.
+
+SEU_DOMINIO_AQUI {
+  encode zstd gzip
+
+  # API (NestJS running on host:3001)
+  @api path /api*
+  reverse_proxy @api host.docker.internal:3001
+
+  # Frontend static build
+  root * /srv/td2/web
+  try_files {path} /index.html
+  file_server
+
+  header {
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "no-referrer"
+    Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+  }
+}
+

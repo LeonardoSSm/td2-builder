@@ -1,0 +1,38 @@
+[
+  {
+    "id": "striker_dps",
+    "name": "Striker DPS",
+    "description": "Foco em dano sustentado para PvE.",
+    "focus": "DPS",
+    "preferredCore": "Red",
+    "setHints": ["striker"],
+    "brandHints": ["grupo sombra", "ceska", "fenris", "providence"],
+    "primaryWeaponHints": ["AR", "LMG"],
+    "secondaryWeaponHints": ["SMG", "Shotgun"],
+    "enabled": true
+  },
+  {
+    "id": "armor_regen_tank",
+    "name": "Armor Regen Tank",
+    "description": "Alta sobrevivencia com foco em armadura e regen.",
+    "focus": "Tank",
+    "preferredCore": "Blue",
+    "setHints": ["foundry", "future initiative"],
+    "brandHints": ["belstone", "gila", "badger"],
+    "primaryWeaponHints": ["Shotgun", "LMG"],
+    "secondaryWeaponHints": ["SMG", "Pistol"],
+    "enabled": true
+  },
+  {
+    "id": "skill_damage",
+    "name": "Skill Damage",
+    "description": "Foco em dano de habilidade e uptime de skill.",
+    "focus": "Skill",
+    "preferredCore": "Yellow",
+    "setHints": ["rigger", "future initiative", "hard wired"],
+    "brandHints": ["hana", "wyvern", "empress"],
+    "primaryWeaponHints": ["AR", "Rifle"],
+    "secondaryWeaponHints": ["SMG", "Pistol"],
+    "enabled": true
+  }
+]

@@ -1,0 +1,619 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- Enums (data consistency) ---
+enum GearSlot {
+  Mask
+  Chest
+  Backpack
+  Gloves
+  Holster
+  Kneepads
+}
+
+enum GearRarity {
+  HighEnd
+  Named
+  Exotic
+  GearSet
+}
+
+enum CoreColor {
+  Red
+  Blue
+  Yellow
+}
+
+enum WeaponClass {
+  AR
+  SMG
+  LMG
+  Rifle
+  MMR
+  Shotgun
+  Pistol
+}
+
+enum WeaponRarity {
+  HighEnd
+  Named
+  Exotic
+}
+
+enum TalentType {
+  Weapon
+  Chest
+  Backpack
+  GearSet
+}
+
+enum AttributeCategory {
+  Offensive
+  Defensive
+  Utility
+}
+
+enum AttributeUnit {
+  PERCENT
+  FLAT
+}
+
+enum GearItemStatKind {
+  CORE
+  MINOR
+}
+
+enum RecommendedFocus {
+  DPS
+  Tank
+  Skill
+}
+
+model Source {
+  id          String    @id @map("source_id")
+  type        String
+  reference   String?
+  notes       String?
+  lastUpdated DateTime?
+
+  brands     Brand[]
+  gearSets   GearSet[]
+  talents    Talent[]
+  attributes Attribute[]
+  gearItems  GearItem[]
+  weapons    Weapon[]
+  rules      ItemAttrRule[]
+}
+
+model Brand {
+  id           String    @id @map("brand_id")
+  name         String
+  bonus1       String?
+  bonus2       String?
+  bonus3       String?
+  wikiUrl      String?
+  logoUrl      String?
+  patchVersion String?
+  lastUpdated  DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  gearItems GearItem[]
+}
+
+model GearSet {
+  id           String    @id @map("set_id")
+  name         String
+  description  String?
+  bonus2       String?
+  bonus3       String?
+  bonus4       String?
+  wikiUrl      String?
+  logoUrl      String?
+  patchVersion String?
+  lastUpdated  DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  gearItems GearItem[]
+}
+
+model Talent {
+  id           String    @id @map("talent_id")
+  name         String
+  type         TalentType
+  description  String?
+  cooldownS    Int?
+  conditions   String?
+  wikiUrl      String?
+  patchVersion String?
+  lastUpdated  DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  gearItems GearItem[]
+  weapons   Weapon[]
+}
+
+model Attribute {
+  id           String    @id @map("attr_id")
+  name         String
+  category     AttributeCategory
+  unit         AttributeUnit
+  notes        String?
+  patchVersion String?
+  lastUpdated  DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  rules ItemAttrRule[]
+}
+
+model GearItem {
+  id     String @id @map("item_id")
+  name   String
+  slot   GearSlot
+  rarity GearRarity
+
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id])
+
+  setId   String?
+  gearSet GearSet? @relation(fields: [setId], references: [id])
+
+  isNamed  Boolean @default(false)
+  isExotic Boolean @default(false)
+
+  coreColor CoreColor?
+  coreCount Int?
+  modSlots  Int?
+
+  talentId String?
+  talent   Talent? @relation(fields: [talentId], references: [id])
+
+  imageUrl      String?
+  wikiUrl       String?
+  targetLootRef String?
+  notes         String?
+  patchVersion  String?
+  lastUpdated   DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  rules      ItemAttrRule[]
+  buildSlots BuildSlot[]
+  stats      GearItemStat[]
+  mods       GearItemMod[]
+
+  @@index([slot])
+  @@index([rarity])
+  @@index([slot, rarity])
+  @@index([brandId])
+  @@index([setId])
+}
+
+model GearItemStat {
+  id     String  @id @default(cuid()) @map("stat_id")
+  itemId String
+  item   GearItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  kind  GearItemStatKind
+  name  String
+  value String?
+  unit  String?
+  order Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([itemId])
+  @@index([kind])
+}
+
+model GearItemMod {
+  id     String  @id @default(cuid()) @map("mod_id")
+  itemId String
+  item   GearItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  name  String
+  value String?
+  order Int @default(0)
+
+  @@index([itemId])
+}
+
+model ItemAttrRule {
+  id     String   @id @map("rule_id")
+  itemId String
+  item   GearItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  attrId    String
+  attribute Attribute @relation(fields: [attrId], references: [id])
+
+  isCore  Boolean @default(false)
+  isMinor Boolean @default(false)
+
+  minValue     String?
+  maxValue     String?
+  notes        String?
+  patchVersion String?
+  lastUpdated  DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  @@index([itemId])
+  @@index([attrId])
+}
+
+model Weapon {
+  id       String  @id @map("weapon_id")
+  name     String
+  class    WeaponClass
+  rarity   WeaponRarity
+  isNamed  Boolean @default(false)
+  isExotic Boolean @default(false)
+
+  baseDamage String?
+  rpm        Int?
+  magSize    Int?
+
+  talentId String?
+  talent   Talent? @relation(fields: [talentId], references: [id])
+
+  imageUrl      String?
+  wikiUrl       String?
+  targetLootRef String?
+  notes         String?
+  patchVersion  String?
+  lastUpdated   DateTime?
+
+  sourceId String?
+  source   Source? @relation(fields: [sourceId], references: [id])
+
+  @@index([class])
+  @@index([rarity])
+  @@index([class, rarity])
+}
+
+model WeaponMod {
+  id      String  @id @map("weapon_mod_id")
+  type    String?
+  slot    String?
+  name    String
+  bonus   String?
+  penalty String?
+  source  String?
+  notes   String?
+
+  patchVersion String?
+  lastUpdated  DateTime?
+
+  @@unique([name])
+  @@index([type])
+  @@index([slot])
+}
+
+model Build {
+  id                String  @id @default(cuid())
+  name              String
+  patchVersion      String?
+  primaryWeaponId   String?
+  secondaryWeaponId String?
+
+  ownerUserId String?
+  owner       AccessUser? @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  slots BuildSlot[]
+
+  @@index([ownerUserId])
+}
+
+model BuildSlot {
+  id      String @id @default(cuid())
+  buildId String
+  build   Build  @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
+  slot   GearSlot
+  itemId String?
+  item   GearItem? @relation(fields: [itemId], references: [id])
+
+  @@unique([buildId, slot])
+}
+
+model TargetLootLog {
+  id             String   @id @default(cuid())
+  date           DateTime
+  locationType   String?
+  locationName   String?
+  targetLootRef  String?
+  targetLootName String?
+  sourceUrl      String?
+  notes          String?
+}
+
+model AccessProfile {
+  id          String   @id @default(cuid())
+  name        String
+  permissions String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users AccessUser[]
+}
+
+model AccessUser {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  passwordHash String?
+  refreshTokenHash String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profileId String
+  profile   AccessProfile @relation(fields: [profileId], references: [id])
+
+  builds Build[]
+
+  @@index([profileId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  at        DateTime @default(now())
+
+  userId    String?
+  ip        String?
+
+  method    String
+  path      String
+  status    Int
+  durationMs Int
+
+  ok        Boolean
+  error     String?
+
+  meta      Json?
+
+  @@index([at])
+  @@index([userId])
+  @@index([path])
+}
+
+model RecommendedBuildProfile {
+  id                  String   @id @default(cuid())
+  name                String
+  description         String?
+  focus               RecommendedFocus
+  preferredCore       CoreColor
+  enabled             Boolean  @default(true)
+  order               Int      @default(0)
+
+  setHints             String[]
+  brandHints           String[]
+  primaryWeaponHints   String[]
+  secondaryWeaponHints String[]
+
+  slotOverrides Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled])
+  @@index([order])
+}
+
+model FarmMap {
+  id        String   @id @default(cuid()) @map("map_id")
+  slug      String   @unique
+  name      String
+  // For a "map board" UI (image + markers). Coordinates are normalized 0..1.
+  imageUrl  String?
+  centerX   Float    @default(0.5)
+  centerY   Float    @default(0.5)
+  zoom      Float    @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  areas FarmArea[]
+}
+
+model FarmArea {
+  id          String   @id @default(cuid()) @map("area_id")
+  mapId       String
+  title       String
+  description String?
+  itemType    String?
+  itemRef     String?
+  x           Float
+  y           Float
+  radiusPx    Int      @default(60)
+  color       String   @default("red")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  map FarmMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+
+  @@index([mapId])
+}
+
+// --- Community spreadsheet (Division 2 Gear Spreadsheet) ---
+// These models support importing *all* sheets so we can keep the full data set available.
+
+model SkillFamily {
+  id           String   @id @map("skill_id")
+  name         String   @unique
+  availability String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  variants SkillVariant[]
+}
+
+model SkillVariant {
+  id           String   @id @map("skill_variant_id")
+  familyId     String
+  name         String
+  availability String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  family SkillFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  stats  SkillVariantStat[]
+
+  @@unique([familyId, name])
+  @@index([familyId])
+}
+
+model SkillVariantStat {
+  id               String   @id @default(cuid()) @map("skill_stat_id")
+  variantId        String
+  stat             String
+  tier0            String?
+  tier1            String?
+  tier2            String?
+  tier3            String?
+  tier4            String?
+  tier5            String?
+  tier6            String?
+  overchargeStats  String?
+  overchargeEffects String?
+  expertiseGrades  String?
+  order            Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  variant SkillVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([variantId])
+}
+
+model Specialization {
+  id        String   @id @map("spec_id")
+  name      String   @unique
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  nodes SpecializationNode[]
+}
+
+model SpecializationNode {
+  id          String   @id @default(cuid()) @map("spec_node_id")
+  specId      String
+  group       String?
+  kind        String?
+  name        String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  spec Specialization @relation(fields: [specId], references: [id], onDelete: Cascade)
+
+  @@index([specId])
+}
+
+model CommunityBuildGuide {
+  id        String   @id @map("guide_id")
+  type      String?
+  name      String
+  author    String?
+  updatedRaw String?
+  link      String?
+  outline   String?
+  sourceSheet String @default("Hub (Builds)")
+  order     Int      @default(0)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([sourceSheet])
+}
+
+model CommunityFaq {
+  id        String   @id @map("faq_id")
+  group     String?
+  type      String?
+  question  String
+  answer    String?
+  comments  String?
+  order     Int      @default(0)
+  sourceSheet String @default("FAQ")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@index([type])
+  @@index([sourceSheet])
+}
+
+model CommunityCredit {
+  id            String   @id @map("credit_id")
+  name          String
+  jobDescription String?
+  contactInfo   String?
+  notes         String?
+  sourceSheet   String   @default("Credits+admin")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sourceSheet])
+}
+
+model SpreadsheetDumpRow {
+  id        String   @id @default(cuid()) @map("dump_id")
+  sourceKey String
+  sheetName String
+  rowNumber Int
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sourceKey, sheetName, rowNumber])
+  @@index([sourceKey, sheetName])
+}
+
+model ImportJob {
+  id             String   @id @default(cuid()) @map("import_job_id")
+  kind           String   @default("xlsx")
+  filename       String
+  mimeType       String?
+  sizeBytes      Int?
+  status         String   @default("QUEUED")
+  progress       Int      @default(0)
+  totalSteps     Int      @default(0)
+  processedSteps Int      @default(0)
+  attempt        Int      @default(0)
+  maxAttempts    Int      @default(3)
+  report         Json?
+  error          String?
+  filePath       String?
+  requestedBy    String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([createdAt])
+}
