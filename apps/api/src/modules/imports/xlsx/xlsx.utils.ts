@@ -227,6 +227,106 @@ export function coreColorFromAttrName(nameRaw: string): string | null {
   return null;
 }
 
+function normKey(v: any): string {
+  return String(v ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "");
+}
+
+export function normalizeGearSlot(raw: any): "Mask" | "Chest" | "Backpack" | "Gloves" | "Holster" | "Kneepads" {
+  const k = normKey(raw);
+  if (!k) return "Mask";
+  if (["mask", "mascara", "mascaras"].includes(k)) return "Mask";
+  if (["chest", "vest", "colete"].includes(k)) return "Chest";
+  if (["backpack", "mochila"].includes(k)) return "Backpack";
+  if (["gloves", "luva", "luvas"].includes(k)) return "Gloves";
+  if (["holster", "coldre"].includes(k)) return "Holster";
+  if (["kneepads", "kneepad", "knees", "knee", "joelheira", "joelheiras"].includes(k)) return "Kneepads";
+  // If it is already correct-cased, keep it.
+  const s = String(raw ?? "").trim();
+  if (s === "Mask" || s === "Chest" || s === "Backpack" || s === "Gloves" || s === "Holster" || s === "Kneepads") return s;
+  return "Mask";
+}
+
+export function normalizeGearRarity(raw: any): "HighEnd" | "Named" | "Exotic" | "GearSet" {
+  const k = normKey(raw);
+  if (!k) return "HighEnd";
+  if (k === "named") return "Named";
+  if (k === "exotic") return "Exotic";
+  if (k === "gearset") return "GearSet";
+  if (k === "highend") return "HighEnd";
+  const s = String(raw ?? "").trim();
+  if (s === "HighEnd" || s === "Named" || s === "Exotic" || s === "GearSet") return s;
+  return "HighEnd";
+}
+
+export function normalizeWeaponRarity(raw: any): "HighEnd" | "Named" | "Exotic" {
+  const r = normalizeGearRarity(raw);
+  return r === "GearSet" ? "HighEnd" : r;
+}
+
+export function normalizeCoreColor(raw: any): "Red" | "Blue" | "Yellow" | null {
+  const k = normKey(raw);
+  if (!k) return null;
+  if (k === "red") return "Red";
+  if (k === "blue") return "Blue";
+  if (k === "yellow") return "Yellow";
+  const s = String(raw ?? "").trim();
+  if (s === "Red" || s === "Blue" || s === "Yellow") return s;
+  return null;
+}
+
+export function normalizeTalentType(raw: any): "Weapon" | "Chest" | "Backpack" | "GearSet" {
+  const k = normKey(raw);
+  if (!k) return "Weapon";
+  if (k === "weapon") return "Weapon";
+  if (k === "chest") return "Chest";
+  if (k === "backpack") return "Backpack";
+  if (k === "gearset") return "GearSet";
+  const s = String(raw ?? "").trim();
+  if (s === "Weapon" || s === "Chest" || s === "Backpack" || s === "GearSet") return s;
+  return "Weapon";
+}
+
+export function normalizeWeaponClass(raw: any): "AR" | "SMG" | "LMG" | "Rifle" | "MMR" | "Shotgun" | "Pistol" {
+  const k = normKey(raw);
+  if (!k) return "AR";
+  if (k === "ar" || k.includes("assaultrifle")) return "AR";
+  if (k === "smg" || k.includes("submachine")) return "SMG";
+  if (k === "lmg" || k.includes("lightmachine")) return "LMG";
+  if (k === "mmr" || k.includes("marksman")) return "MMR";
+  if (k === "rifle" || k.includes("rifle")) return "Rifle";
+  if (k.includes("shotgun")) return "Shotgun";
+  if (k.includes("pistol")) return "Pistol";
+  const s = String(raw ?? "").trim();
+  if (s === "AR" || s === "SMG" || s === "LMG" || s === "Rifle" || s === "MMR" || s === "Shotgun" || s === "Pistol") return s;
+  return "AR";
+}
+
+export function normalizeAttributeCategory(raw: any): "Offensive" | "Defensive" | "Utility" {
+  const k = normKey(raw);
+  if (!k) return "Offensive";
+  if (k === "offensive") return "Offensive";
+  if (k === "defensive") return "Defensive";
+  if (k === "utility") return "Utility";
+  const s = String(raw ?? "").trim();
+  if (s === "Offensive" || s === "Defensive" || s === "Utility") return s;
+  return "Offensive";
+}
+
+export function normalizeAttributeUnit(raw: any): "PERCENT" | "FLAT" {
+  const k = normKey(raw);
+  if (!k) return "PERCENT";
+  if (k === "%" || k === "percent" || k === "percentage" || k === "pct" || k === "porcentagem") return "PERCENT";
+  if (k === "flat") return "FLAT";
+  const s = String(raw ?? "").trim();
+  if (s === "PERCENT" || s === "FLAT") return s;
+  return "PERCENT";
+}
+
 export function parseAttrNameValue(raw: string): { name: string; value: string | null } {
   const s = String(raw ?? "").replace(/\s+/g, " ").trim();
   if (!s || isJunkText(s)) return { name: "", value: null };

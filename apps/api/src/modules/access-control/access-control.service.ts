@@ -81,12 +81,11 @@ export class AccessControlService {
     const exists = await this.prisma.accessProfile.findUnique({ where: { id: profileId } });
     if (!exists) throw new NotFoundException("Profile not found");
 
-    // Users referencing this profile become inactive to prevent orphaned permissions.
-    await this.prisma.accessUser.updateMany({
-      where: { profileId },
-      data: { active: false },
-    });
-    await this.prisma.accessProfile.delete({ where: { id: profileId } });
+    await this.prisma.$transaction([
+      // Users referencing this profile become inactive to prevent orphaned permissions.
+      this.prisma.accessUser.updateMany({ where: { profileId }, data: { active: false } }),
+      this.prisma.accessProfile.delete({ where: { id: profileId } }),
+    ]);
     return { ok: true };
   }
 

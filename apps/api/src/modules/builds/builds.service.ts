@@ -2,20 +2,21 @@ import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/co
 import { PrismaService } from "../prisma/prisma.service";
 import { ApplyRecommendedBuildDto, CreateBuildDto, UpdateBuildDto, UpsertRecommendedBuildProfileDto } from "./dto/build.dto";
 import { randomUUID } from "crypto";
+import { CoreColor, GearRarity, GearSlot, RecommendedFocus } from "@prisma/client";
 
-const DEFAULT_SLOTS = ["Mask", "Chest", "Backpack", "Gloves", "Holster", "Kneepads"] as const;
+const DEFAULT_SLOTS: GearSlot[] = ["Mask", "Chest", "Backpack", "Gloves", "Holster", "Kneepads"];
 
 type RecommendedBuildProfile = {
   id: string;
   name: string;
   description: string;
-  focus: "DPS" | "Tank" | "Skill";
-  preferredCore: "Red" | "Blue" | "Yellow";
+  focus: RecommendedFocus;
+  preferredCore: CoreColor;
   setHints: string[];
   brandHints: string[];
   primaryWeaponHints: string[];
   secondaryWeaponHints: string[];
-  slotOverrides?: Partial<Record<(typeof DEFAULT_SLOTS)[number], string>>;
+  slotOverrides?: Partial<Record<GearSlot, string>>;
   enabled?: boolean;
 };
 
@@ -23,9 +24,9 @@ type RecommendedBuildResult = {
   id: string;
   name: string;
   description: string;
-  focus: "DPS" | "Tank" | "Skill";
-  preferredCore: "Red" | "Blue" | "Yellow";
-  slots: Array<{ slot: string; itemId: string | null; itemName: string | null }>;
+  focus: RecommendedFocus;
+  preferredCore: CoreColor;
+  slots: Array<{ slot: GearSlot; itemId: string | null; itemName: string | null }>;
   primaryWeaponId: string | null;
   primaryWeaponName: string | null;
   secondaryWeaponId: string | null;
@@ -39,8 +40,8 @@ const DEFAULT_RECOMMENDED_PROFILES: RecommendedBuildProfile[] = [
     id: "striker_dps",
     name: "Striker DPS",
     description: "Foco em dano sustentado para PvE.",
-    focus: "DPS",
-    preferredCore: "Red",
+    focus: RecommendedFocus.DPS,
+    preferredCore: CoreColor.Red,
     setHints: ["striker"],
     brandHints: ["grupo sombra", "ceska", "fenris", "providence"],
     primaryWeaponHints: ["AR", "LMG"],
@@ -50,8 +51,8 @@ const DEFAULT_RECOMMENDED_PROFILES: RecommendedBuildProfile[] = [
     id: "armor_regen_tank",
     name: "Armor Regen Tank",
     description: "Alta sobrevivencia com foco em armadura e regen.",
-    focus: "Tank",
-    preferredCore: "Blue",
+    focus: RecommendedFocus.Tank,
+    preferredCore: CoreColor.Blue,
     setHints: ["foundry", "future initiative"],
     brandHints: ["belstone", "gila", "badger"],
     primaryWeaponHints: ["Shotgun", "LMG"],
@@ -61,8 +62,8 @@ const DEFAULT_RECOMMENDED_PROFILES: RecommendedBuildProfile[] = [
     id: "skill_damage",
     name: "Skill Damage",
     description: "Foco em dano de habilidade e uptime de skill.",
-    focus: "Skill",
-    preferredCore: "Yellow",
+    focus: RecommendedFocus.Skill,
+    preferredCore: CoreColor.Yellow,
     setHints: ["rigger", "future initiative", "hard wired"],
     brandHints: ["hana", "wyvern", "empress"],
     primaryWeaponHints: ["AR", "Rifle"],
@@ -197,8 +198,8 @@ export class BuildsService {
       id: baseId,
       name: dto.name.trim(),
       description: (dto.description ?? "").trim(),
-      focus: dto.focus as "DPS" | "Tank" | "Skill",
-      preferredCore: dto.preferredCore as "Red" | "Blue" | "Yellow",
+      focus: dto.focus,
+      preferredCore: dto.preferredCore,
       setHints: (dto.setHints ?? []).map((x) => x.trim()).filter(Boolean),
       brandHints: (dto.brandHints ?? []).map((x) => x.trim()).filter(Boolean),
       primaryWeaponHints: (dto.primaryWeaponHints ?? []).map((x) => x.trim()).filter(Boolean),
@@ -437,8 +438,8 @@ export class BuildsService {
       if (it.coreColor === profile.preferredCore) score += 40;
       if (profile.setHints.some((hint) => setKey.includes(norm(hint)))) score += 35;
       if (profile.brandHints.some((hint) => brandKey.includes(norm(hint)))) score += 20;
-      if (it.rarity === "Exotic") score += 8;
-      if (it.rarity === "Named") score += 5;
+      if (it.rarity === GearRarity.Exotic) score += 8;
+      if (it.rarity === GearRarity.Named) score += 5;
       return { it, score };
     });
 
@@ -456,11 +457,11 @@ export class BuildsService {
     return pool[0];
   }
 
-  private sanitizeSlotOverrides(input?: Record<string, string>): Partial<Record<(typeof DEFAULT_SLOTS)[number], string>> | undefined {
+  private sanitizeSlotOverrides(input?: Record<string, string>): Partial<Record<GearSlot, string>> | undefined {
     if (!input || typeof input !== "object") return undefined;
-    const out: Partial<Record<(typeof DEFAULT_SLOTS)[number], string>> = {};
+    const out: Partial<Record<GearSlot, string>> = {};
     for (const slot of DEFAULT_SLOTS) {
-      const val = input[slot];
+      const val = (input as any)[slot];
       if (typeof val === "string" && val.trim()) out[slot] = val.trim();
     }
     return Object.keys(out).length ? out : undefined;

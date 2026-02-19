@@ -10,6 +10,7 @@ import AdminAccessPage from "./pages/admin-access";
 import AdminCatalogPage from "./pages/admin-catalog";
 import AdminMapsPage from "./pages/admin-maps";
 import AdminAuditPage from "./pages/admin-audit";
+import AdminMonitorPage from "./pages/admin-monitor";
 import SidebarLayout from "./layout/SidebarLayout";
 import { useI18n } from "./i18n";
 import LoginPage from "./pages/login";
@@ -33,6 +34,7 @@ export default function App() {
           <Route path="/admin/import" element={<RequireAuth><AdminImportPage /></RequireAuth>} />
           <Route path="/admin/recommended" element={<RequireAuth><AdminRecommendedBuildsPage /></RequireAuth>} />
           <Route path="/admin/maps" element={<RequireAuth><AdminMapsPage /></RequireAuth>} />
+          <Route path="/admin/monitor" element={<RequireAuth><AdminMonitorPage /></RequireAuth>} />
           <Route path="/admin/access" element={<RequireAuth><AdminAccessPage /></RequireAuth>} />
           <Route path="/admin/audit" element={<RequireAuth><AdminAuditPage /></RequireAuth>} />
         </Routes>

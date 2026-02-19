@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { randomUUID } from "crypto";
-import { Prisma } from "@prisma/client";
+import { AttributeCategory, AttributeUnit, GearItemStatKind, Prisma, TalentType } from "@prisma/client";
 
 function autoId(prefix: string): string {
   // Short, unique, readable enough for admin-created records.
@@ -26,7 +26,7 @@ type ExtendedDetails = {
 };
 
 type GearStatCreate = {
-  kind: string;
+  kind: GearItemStatKind;
   name: string;
   value?: string | null;
   unit?: string | null;
@@ -108,9 +108,9 @@ function extractGearStructured(input?: any): { stats?: GearStatCreate[]; mods?: 
   const m2v = by("gear_mods", "Mod2Value");
 
   const stats: GearStatCreate[] = [];
-  if (coreName) stats.push({ kind: "CORE", name: coreName, value: coreValue || null, order: 1 });
-  if (a1n) stats.push({ kind: "MINOR", name: a1n, value: a1v || null, order: 10 });
-  if (a2n) stats.push({ kind: "MINOR", name: a2n, value: a2v || null, order: 11 });
+  if (coreName) stats.push({ kind: GearItemStatKind.CORE, name: coreName, value: coreValue || null, order: 1 });
+  if (a1n) stats.push({ kind: GearItemStatKind.MINOR, name: a1n, value: a1v || null, order: 10 });
+  if (a2n) stats.push({ kind: GearItemStatKind.MINOR, name: a2n, value: a2v || null, order: 11 });
 
   const mods: GearModCreate[] = [];
   if (m1n) mods.push({ name: m1n, value: m1v || null, order: 1 });
@@ -309,7 +309,7 @@ export class AdminService {
 
   createTalent(dto: any) {
     const id = autoId("TLT_");
-    const type = (dto?.type ?? "Weapon") as any;
+    const type = (dto?.type ?? TalentType.Weapon) as TalentType;
     return this.prisma.talent.create({
       data: {
         id,
@@ -326,7 +326,7 @@ export class AdminService {
     if (!exists) throw new NotFoundException("Talent not found");
     const data: any = {};
     if (dto?.name !== undefined) data.name = String(dto.name).trim();
-    if (dto?.type !== undefined) data.type = dto.type as any;
+    if (dto?.type !== undefined) data.type = dto.type as TalentType;
     if (dto?.description !== undefined) data.description = dto.description || null;
     if (dto?.wikiUrl !== undefined) data.wikiUrl = dto.wikiUrl || null;
     return this.prisma.talent.update({ where: { id }, data });
@@ -344,8 +344,8 @@ export class AdminService {
 
   createAttribute(dto: any) {
     const id = autoId("ATR_");
-    const category = (dto?.category ?? "Offensive") as any;
-    const unit = (dto?.unit ?? "PERCENT") as any;
+    const category = (dto?.category ?? AttributeCategory.Offensive) as AttributeCategory;
+    const unit = (dto?.unit ?? AttributeUnit.PERCENT) as AttributeUnit;
     return this.prisma.attribute.create({
       data: {
         id,
@@ -362,8 +362,8 @@ export class AdminService {
     if (!exists) throw new NotFoundException("Attribute not found");
     const data: any = {};
     if (dto?.name !== undefined) data.name = String(dto.name).trim();
-    if (dto?.category !== undefined) data.category = dto.category as any;
-    if (dto?.unit !== undefined) data.unit = dto.unit as any;
+    if (dto?.category !== undefined) data.category = dto.category as AttributeCategory;
+    if (dto?.unit !== undefined) data.unit = dto.unit as AttributeUnit;
     if (dto?.notes !== undefined) data.notes = dto.notes || null;
     return this.prisma.attribute.update({ where: { id }, data });
   }

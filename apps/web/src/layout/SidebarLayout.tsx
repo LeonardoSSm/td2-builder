@@ -96,6 +96,13 @@ function Icon({ name }: { name: string }) {
           <path {...stroke} d="M9 12h6" opacity="0.35" />
         </svg>
       );
+    case "monitor":
+      return (
+        <svg {...common}>
+          <path {...stroke} d="M3 12h4l2-4 3 8 2-4h7" />
+          <path {...stroke} d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" opacity="0.35" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>
@@ -161,6 +168,7 @@ export default function SidebarLayout({ children }: { children: React.ReactNode 
       if (me && hasPerm("admin.import.run")) adminItems.push({ to: "/admin/import", label: tx("Importar", "Import"), icon: <Icon name="import" /> });
       if (me && hasPerm("admin.recommended.manage")) adminItems.push({ to: "/admin/recommended", label: tx("Builds Recomendadas", "Recommended Builds"), icon: <Icon name="star" /> });
       if (me && hasPerm("admin.maps.manage")) adminItems.push({ to: "/admin/maps", label: tx("Mapa (Loot/Farm)", "Map (Loot/Farm)"), icon: <Icon name="map" /> });
+      if (me && hasPerm("admin.monitor.view")) adminItems.push({ to: "/admin/monitor", label: tx("Monitor", "Monitor"), icon: <Icon name="monitor" /> });
       if (me && hasPerm("admin.audit.view")) adminItems.push({ to: "/admin/audit", label: tx("Auditoria", "Audit"), icon: <Icon name="admin" /> });
       if (me && hasPerm("admin.users.manage")) adminItems.push({ to: "/admin/access", label: tx("Usuários e Permissões", "Users & Permissions"), icon: <Icon name="users" /> });
 

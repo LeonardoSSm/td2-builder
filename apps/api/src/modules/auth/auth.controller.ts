@@ -40,38 +40,63 @@ export class AuthController {
       .trim() || "unknown";
   }
 
-  private loginRateLimitKey(req: any, email: string): string {
+  private loginRateLimitKeys(req: any, email: string): { ipKey: string; ipEmailKey: string } {
     const ip = this.getClientIp(req);
     const mail = String(email ?? "").trim().toLowerCase();
-    return `${ip}|${mail}`;
+    return { ipKey: `ip:${ip}`, ipEmailKey: `ipmail:${ip}|${mail}` };
   }
 
-  private isLoginRateLimited(key: string): boolean {
-    const max = Math.max(1, this.asInt(this.config.get("LOGIN_RATE_LIMIT_MAX"), 10));
-    const windowMs = Math.max(1_000, this.asInt(this.config.get("LOGIN_RATE_LIMIT_WINDOW_MS"), 60_000));
+  private isBucketLimited(key: string, max: number, windowMs: number): boolean {
+    const safeMax = Math.max(1, max);
+    const safeWindowMs = Math.max(1_000, windowMs);
     const now = Date.now();
     const b = this.loginBuckets.get(key);
     if (!b) return false;
-    if (now - b.startMs >= windowMs) {
+    if (now - b.startMs >= safeWindowMs) {
       this.loginBuckets.delete(key);
       return false;
     }
-    return b.fails >= max;
+    return b.fails >= safeMax;
   }
 
-  private markLoginFailed(key: string): void {
+  private isLoginRateLimited(req: any, email: string): boolean {
+    const maxPerIpEmail = Math.max(1, this.asInt(this.config.get("LOGIN_RATE_LIMIT_MAX"), 10));
+    const maxPerIp = Math.max(maxPerIpEmail, this.asInt(this.config.get("LOGIN_RATE_LIMIT_MAX_IP"), maxPerIpEmail * 3));
     const windowMs = Math.max(1_000, this.asInt(this.config.get("LOGIN_RATE_LIMIT_WINDOW_MS"), 60_000));
-    const now = Date.now();
-    const cur = this.loginBuckets.get(key);
-    if (!cur || now - cur.startMs >= windowMs) {
-      this.loginBuckets.set(key, { startMs: now, fails: 1 });
-      return;
-    }
-    cur.fails += 1;
+    const { ipKey, ipEmailKey } = this.loginRateLimitKeys(req, email);
+    return this.isBucketLimited(ipKey, maxPerIp, windowMs) || this.isBucketLimited(ipEmailKey, maxPerIpEmail, windowMs);
   }
 
-  private clearLoginBucket(key: string): void {
-    this.loginBuckets.delete(key);
+  private markLoginFailed(req: any, email: string): void {
+    const { ipKey, ipEmailKey } = this.loginRateLimitKeys(req, email);
+    const windowMs = Math.max(1_000, this.asInt(this.config.get("LOGIN_RATE_LIMIT_WINDOW_MS"), 60_000));
+    const maxKeys = Math.max(200, this.asInt(this.config.get("LOGIN_RATE_LIMIT_MAX_KEYS"), 10_000));
+    const now = Date.now();
+
+    if (this.loginBuckets.size > maxKeys) {
+      let removed = 0;
+      const overflow = this.loginBuckets.size - maxKeys;
+      for (const key of this.loginBuckets.keys()) {
+        this.loginBuckets.delete(key);
+        removed += 1;
+        if (removed >= overflow) break;
+      }
+    }
+
+    for (const key of [ipKey, ipEmailKey]) {
+      const cur = this.loginBuckets.get(key);
+      if (!cur || now - cur.startMs >= windowMs) {
+        this.loginBuckets.set(key, { startMs: now, fails: 1 });
+        continue;
+      }
+      cur.fails += 1;
+    }
+  }
+
+  private clearLoginBucket(req: any, email: string): void {
+    // Keep ip bucket to preserve broader anti-bruteforce behavior.
+    const { ipEmailKey } = this.loginRateLimitKeys(req, email);
+    this.loginBuckets.delete(ipEmailKey);
   }
 
   private cookieOpts() {
@@ -130,20 +155,19 @@ export class AuthController {
 
   @Post("login")
   async login(@Body() dto: LoginDto, @Req() req: any, @Res({ passthrough: true }) res: Response) {
-    const key = this.loginRateLimitKey(req, dto.email);
-    if (this.isLoginRateLimited(key)) {
+    if (this.isLoginRateLimited(req, dto.email)) {
       throw new HttpException("Too many login attempts. Please wait and try again.", HttpStatus.TOO_MANY_REQUESTS);
     }
 
     try {
       const out = await this.auth.login(dto.email, dto.password);
-      this.clearLoginBucket(key);
+      this.clearLoginBucket(req, dto.email);
       this.setAuthCookies(res, out.accessToken, out.refreshToken);
       // Do not return tokens to the browser (cookies are HttpOnly).
       return { user: out.user };
     } catch (e: any) {
       if (e instanceof UnauthorizedException || e?.status === 401) {
-        this.markLoginFailed(key);
+        this.markLoginFailed(req, dto.email);
       }
       throw e;
     }

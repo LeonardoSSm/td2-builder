@@ -12,6 +12,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { MapsModule } from "./modules/maps/maps.module";
 import { AiModule } from "./modules/ai/ai.module";
 import { AuditModule } from "./modules/audit/audit.module";
+import { MonitorModule } from "./modules/monitor/monitor.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AuditModule } from "./modules/audit/audit.module";
     MapsModule,
     AiModule,
     AuditModule,
+    MonitorModule,
   ],
 })
 export class AppModule {}

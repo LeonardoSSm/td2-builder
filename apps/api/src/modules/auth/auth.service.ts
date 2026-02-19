@@ -5,6 +5,7 @@ import * as bcrypt from "bcrypt";
 import { createHash, randomBytes, timingSafeEqual } from "crypto";
 
 const SALT_ROUNDS = 12;
+const DUMMY_BCRYPT_HASH = bcrypt.hashSync("td2-builder-dummy-password", SALT_ROUNDS);
 
 function sha256Hex(input: string): string {
   return createHash("sha256").update(input, "utf8").digest("hex");
@@ -42,11 +43,12 @@ export class AuthService {
       include: { profile: true },
     });
 
-    if (!user || !user.active) throw new UnauthorizedException("Invalid credentials");
-    if (!user.passwordHash) throw new UnauthorizedException("Password not set for this user");
-
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) throw new UnauthorizedException("Invalid credentials");
+    // Always run bcrypt compare to reduce user-enumeration timing differences.
+    const candidateHash = String(user?.passwordHash ?? DUMMY_BCRYPT_HASH);
+    const ok = await bcrypt.compare(password, candidateHash).catch(() => false);
+    if (!user || !user.active || !user.passwordHash || !ok) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
 
     const accessToken = await this.jwt.signAsync({ sub: user.id });
     const refreshToken = makeRefreshToken();
@@ -178,7 +180,7 @@ export class AuthService {
 
     const created = await this.prisma.accessUser.create({
       data: {
-        id: userId && userId.length ? userId : `usr_${Date.now()}`,
+        ...(userId && userId.length ? { id: userId } : {}),
         name: input.name?.trim() || email,
         email,
         active: true,

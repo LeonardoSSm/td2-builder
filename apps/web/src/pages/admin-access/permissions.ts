@@ -4,6 +4,7 @@ export const PERMISSIONS = [
   "admin.recommended.manage",
   "admin.users.manage",
   "admin.maps.manage",
+  "admin.monitor.view",
   "admin.audit.view",
   "ai.chat.use",
 ] as const;

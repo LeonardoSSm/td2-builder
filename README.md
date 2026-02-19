@@ -74,9 +74,18 @@ npm run dev:api
 npm run dev:web
 ```
 
+Se der conflito de porta (`EADDRINUSE: 3001`), use:
+```bash
+npm run dev:api:clean
+```
+
 Acessos:
 - Web: `http://localhost:5173`
 - API health: `http://localhost:3001/api/health`
+- Swagger UI: `http://localhost:3001/api/docs`
+- OpenAPI JSON: `http://localhost:3001/api/docs-json`
+
+Obs: a UI usa assets do `unpkg.com` (CDN). Sem internet, use o JSON em `/api/docs-json`.
 
 ## Autenticação (cookie HttpOnly + CSRF)
 O projeto usa:
@@ -115,6 +124,7 @@ Permissões disponíveis (Access Control):
 - `admin.recommended.manage`
 - `admin.users.manage`
 - `admin.maps.manage`
+- `admin.monitor.view`
 - `admin.audit.view`
 - `ai.chat.use`
 
@@ -164,8 +174,9 @@ Arquivo exemplo:
 - Cookies HttpOnly para auth
 - Refresh token rotativo
 - CSRF em `POST/PUT/PATCH/DELETE`
+- Validação de `Origin/Referer` em mutações (defesa extra contra CSRF)
 - Rate-limit global (best-effort, em memória)
-- Rate-limit de login (`LOGIN_RATE_LIMIT_MAX`, `LOGIN_RATE_LIMIT_WINDOW_MS`)
+- Rate-limit de login por `IP+email` e por `IP`
 - Rate-limit específico para IA
 - Headers de segurança (CSP API, X-Frame-Options, etc.)
 - Audit log (best-effort) em endpoints sensíveis (`/api/admin/*`, `/api/ai/*`, `/api/imports/*`)
@@ -182,6 +193,7 @@ Arquivo exemplo:
 - `JWT_AUDIENCE=` (opcional)
 - `TRUST_PROXY=false` (dev)
 - `ENABLE_HSTS=false` (dev)
+- `SWAGGER_ENABLED=true`
 - `COOKIE_SECURE=false` (dev HTTP)
 - `COOKIE_SAMESITE=lax`
 - `AUTH_COOKIE_ACCESS=td2_at`
@@ -190,6 +202,11 @@ Arquivo exemplo:
 - `AUTH_REFRESH_DAYS=30`
 - `RATE_LIMIT_MAX=120`
 - `RATE_LIMIT_WINDOW_MS=60000`
+- `RATE_LIMIT_MAX_KEYS=20000`
+- `LOGIN_RATE_LIMIT_MAX=10`
+- `LOGIN_RATE_LIMIT_MAX_IP=30`
+- `LOGIN_RATE_LIMIT_WINDOW_MS=60000`
+- `LOGIN_RATE_LIMIT_MAX_KEYS=10000`
 
 ### Web (`apps/web/.env`)
 - Dev local: `VITE_API_URL=http://localhost:3001/api`
@@ -238,6 +255,11 @@ Lint:
 npm run lint
 ```
 
+Unit tests (offline, sem dependências externas):
+```bash
+npm run test:unit
+```
+
 Smoke API (com API em execução):
 ```bash
 npm run test:smoke
@@ -265,6 +287,10 @@ Monitor de saúde local (pronto para cron/webhook):
 ```bash
 npm run monitor:health
 ```
+
+Monitor operacional no sistema:
+- Tela: `Admin > Monitor` (`/admin/monitor`)
+- API: `GET /api/admin/monitor` (JWT + permissão `admin.monitor.view`)
 
 ## Troubleshooting
 ### `Prisma schema engine error`

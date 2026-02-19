@@ -11,6 +11,7 @@
     "start:prod": "node dist/main.js",
     "build": "nest build",
     "lint": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "npm run build && node ../../scripts/unit-api.mjs",
     "test:smoke": "node ../../scripts/smoke-api.mjs",
     "test:e2e": "node ../../scripts/e2e-api.mjs",
     "prisma:generate": "prisma generate",

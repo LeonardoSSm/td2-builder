@@ -1,20 +1,24 @@
-import { IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
+import { IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 
 export class CreateFarmAreaDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(120)
   title!: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   description?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(80)
   itemType?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(120)
   itemRef?: string;
 
   @IsNumber()
@@ -34,7 +38,7 @@ export class CreateFarmAreaDto {
   radiusPx?: number;
 
   @IsOptional()
-  @IsString()
+  @IsIn(["red", "orange", "yellow", "green", "blue", "purple", "white"])
   color?: string;
 }
 
@@ -42,18 +46,22 @@ export class UpdateFarmAreaDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(120)
   title?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   description?: string | null;
 
   @IsOptional()
   @IsString()
+  @MaxLength(80)
   itemType?: string | null;
 
   @IsOptional()
   @IsString()
+  @MaxLength(120)
   itemRef?: string | null;
 
   @IsOptional()
@@ -75,6 +83,6 @@ export class UpdateFarmAreaDto {
   radiusPx?: number;
 
   @IsOptional()
-  @IsString()
+  @IsIn(["red", "orange", "yellow", "green", "blue", "purple", "white"])
   color?: string;
 }

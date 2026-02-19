@@ -1,5 +1,6 @@
 import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Min, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
+import type { CoreColor, GearRarity, GearSlot } from "@prisma/client";
 
 const SLOT_OPTIONS = ["Mask", "Chest", "Backpack", "Gloves", "Holster", "Kneepads"] as const;
 const RARITY_OPTIONS = ["HighEnd", "Named", "Exotic", "GearSet"] as const;
@@ -18,8 +19,8 @@ export class GearItemDetailEntryDto {
 
 export class CreateGearItemDto {
   @IsString() name!: string;
-  @IsIn(SLOT_OPTIONS) slot!: string;
-  @IsIn(RARITY_OPTIONS) rarity!: string;
+  @IsIn(SLOT_OPTIONS) slot!: GearSlot;
+  @IsIn(RARITY_OPTIONS) rarity!: GearRarity;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() acquisition?: string;
   @IsOptional() @IsString() expertiseCategory?: string;
@@ -31,7 +32,7 @@ export class CreateGearItemDto {
   @IsOptional() @Type(() => Boolean) @IsBoolean() isNamed?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() isExotic?: boolean;
 
-  @IsOptional() @IsIn(CORE_COLOR_OPTIONS) coreColor?: string;
+  @IsOptional() @IsIn(CORE_COLOR_OPTIONS) coreColor?: CoreColor;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) coreCount?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) modSlots?: number;
 
@@ -54,8 +55,8 @@ export class CreateGearItemDto {
 
 export class UpdateGearItemDto {
   @IsOptional() @IsString() name?: string;
-  @IsOptional() @IsIn(SLOT_OPTIONS) slot?: string;
-  @IsOptional() @IsIn(RARITY_OPTIONS) rarity?: string;
+  @IsOptional() @IsIn(SLOT_OPTIONS) slot?: GearSlot;
+  @IsOptional() @IsIn(RARITY_OPTIONS) rarity?: GearRarity;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() acquisition?: string;
   @IsOptional() @IsString() expertiseCategory?: string;
@@ -67,7 +68,7 @@ export class UpdateGearItemDto {
   @IsOptional() @Type(() => Boolean) @IsBoolean() isNamed?: boolean;
   @IsOptional() @Type(() => Boolean) @IsBoolean() isExotic?: boolean;
 
-  @IsOptional() @IsIn(CORE_COLOR_OPTIONS) coreColor?: string;
+  @IsOptional() @IsIn(CORE_COLOR_OPTIONS) coreColor?: CoreColor;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) coreCount?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) modSlots?: number;
 

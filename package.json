@@ -10,10 +10,12 @@
   ],
   "scripts": {
     "dev:api": "npm -w apps/api run start:dev",
+    "dev:api:clean": "fuser -k 3001/tcp 2>/dev/null || true && npm run dev:api",
     "dev:web": "npm -w apps/web run dev",
     "start:api:prod": "npm -w apps/api run prisma:migrate:deploy && npm -w apps/api run prisma:generate && npm -w apps/api run build && npm -w apps/api run start:prod",
     "build": "npm -w apps/api run build && npm -w apps/web run build",
     "lint": "npm -w apps/api run lint && npm -w apps/web run lint",
+    "test:unit": "npm -w apps/api run test:unit",
     "db:backup": "bash scripts/db-backup.sh",
     "db:restore-check": "bash scripts/db-restore-check.sh",
     "monitor:health": "bash scripts/health-alert.sh",

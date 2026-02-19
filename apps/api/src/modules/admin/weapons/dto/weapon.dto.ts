@@ -1,5 +1,9 @@
-import { IsArray, IsBoolean, IsInt, IsOptional, IsString, Min, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, Min, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
+import type { WeaponClass, WeaponRarity } from "@prisma/client";
+
+const WEAPON_CLASSES = ["AR", "SMG", "LMG", "Rifle", "MMR", "Shotgun", "Pistol"] as const;
+const WEAPON_RARITIES = ["HighEnd", "Named", "Exotic"] as const;
 
 export class WeaponDetailEntryDto {
   @IsOptional() @IsString() group?: string;
@@ -14,8 +18,8 @@ export class WeaponDetailEntryDto {
 
 export class CreateWeaponDto {
   @IsString() name!: string;
-  @IsString() class!: string;
-  @IsString() rarity!: string;
+  @IsIn(WEAPON_CLASSES) class!: WeaponClass;
+  @IsIn(WEAPON_RARITIES) rarity!: WeaponRarity;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() acquisition?: string;
   @IsOptional() @IsString() expertiseCategory?: string;
@@ -46,8 +50,8 @@ export class CreateWeaponDto {
 
 export class UpdateWeaponDto {
   @IsOptional() @IsString() name?: string;
-  @IsOptional() @IsString() class?: string;
-  @IsOptional() @IsString() rarity?: string;
+  @IsOptional() @IsIn(WEAPON_CLASSES) class?: WeaponClass;
+  @IsOptional() @IsIn(WEAPON_RARITIES) rarity?: WeaponRarity;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() acquisition?: string;
   @IsOptional() @IsString() expertiseCategory?: string;

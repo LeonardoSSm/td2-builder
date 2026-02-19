@@ -215,12 +215,15 @@ Endpoints:
 - Backend registra audit log em endpoints sensíveis.
 - Consulta disponível em `Admin > Auditoria`.
 - Permissão necessária: `admin.audit.view`.
+- Monitor operacional disponível em `Admin > Monitor`.
+- Permissão necessária: `admin.monitor.view`.
 
 ## 13) Monitoramento e alerta
 Health endpoints:
 - `GET /api/health`
 - `GET /api/health/live`
 - `GET /api/health/ready`
+- `GET /api/admin/monitor` (requer login + permissão `admin.monitor.view`)
 
 Script:
 ```bash

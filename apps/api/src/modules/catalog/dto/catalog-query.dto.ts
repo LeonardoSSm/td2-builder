@@ -1,5 +1,6 @@
 import { IsBoolean, IsInt, IsIn, IsOptional, IsString, Max, MaxLength, Min } from "class-validator";
 import { Type } from "class-transformer";
+import type { GearRarity, GearSlot, TalentType, WeaponClass, WeaponRarity } from "@prisma/client";
 
 const GEAR_SLOTS = ["Mask", "Chest", "Backpack", "Gloves", "Holster", "Kneepads"] as const;
 const GEAR_RARITIES = ["HighEnd", "Named", "Exotic", "GearSet"] as const;
@@ -8,8 +9,8 @@ const WEAPON_RARITIES = ["HighEnd", "Named", "Exotic"] as const;
 const TALENT_TYPES = ["Weapon", "Chest", "Backpack", "GearSet"] as const;
 
 export class CatalogGearQueryDto {
-  @IsOptional() @IsString() @IsIn(GEAR_SLOTS as any) slot?: string;
-  @IsOptional() @IsString() @IsIn(GEAR_RARITIES as any) rarity?: string;
+  @IsOptional() @IsString() @IsIn(GEAR_SLOTS as any) slot?: GearSlot;
+  @IsOptional() @IsString() @IsIn(GEAR_RARITIES as any) rarity?: GearRarity;
   @IsOptional() @IsString() @MaxLength(64) brandId?: string;
   @IsOptional() @IsString() @MaxLength(64) setId?: string;
   @IsOptional() @IsString() @MaxLength(120) q?: string;
@@ -20,8 +21,8 @@ export class CatalogGearQueryDto {
 }
 
 export class CatalogWeaponQueryDto {
-  @IsOptional() @IsString() @IsIn(WEAPON_CLASSES as any) class?: string;
-  @IsOptional() @IsString() @IsIn(WEAPON_RARITIES as any) rarity?: string;
+  @IsOptional() @IsString() @IsIn(WEAPON_CLASSES as any) class?: WeaponClass;
+  @IsOptional() @IsString() @IsIn(WEAPON_RARITIES as any) rarity?: WeaponRarity;
   @IsOptional() @IsString() @MaxLength(120) q?: string;
   @IsOptional() @Type(() => Boolean) @IsBoolean() includeDetails?: boolean = false;
 
@@ -30,7 +31,7 @@ export class CatalogWeaponQueryDto {
 }
 
 export class CatalogTalentQueryDto {
-  @IsOptional() @IsString() @IsIn(TALENT_TYPES as any) type?: string;
+  @IsOptional() @IsString() @IsIn(TALENT_TYPES as any) type?: TalentType;
   @IsOptional() @IsString() @MaxLength(120) q?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(200) take?: number;
 }

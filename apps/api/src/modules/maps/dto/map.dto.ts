@@ -1,17 +1,20 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Max, Min } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Matches, Max, MaxLength, Min } from "class-validator";
 
 export class CreateFarmMapDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(48)
   @Matches(/^[a-z0-9-]{2,48}$/)
   slug!: string;
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(120)
   name!: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   imageUrl?: string;
 
   @IsOptional()
@@ -37,11 +40,14 @@ export class UpdateFarmMapDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(48)
+  @Matches(/^[a-z0-9-]{2,48}$/)
   slug?: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(120)
   name?: string;
 
   @IsOptional()
@@ -64,5 +70,6 @@ export class UpdateFarmMapDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   imageUrl?: string | null;
 }
